@@ -34,22 +34,25 @@ class Hensk():
         # Set defualt values.
         path            = request["path"]
         method          = request["method"]
-        header          = "404 NotFound"
+        header          = "404 Not Found"
         content_type    = "text/html"
-        content         = "404 Not Found"
+        content         = "404 Not Found."
 
         # Generate response.
+        try:
+            # Check if path in reoute_index.
+            if path in self.route_index:
+                # Check if method matchs.
+                if method != self.route_index[path].method:
+                    header = "404 Not Found"
+                    content = "Page Not Found."
 
-        # Check if path in reoute_index.
-        if path in self.route_index:
-            # Check if method matchs.
-            if method != self.route_index[path].method:
-                header = "404 Not Found"
-                content = "404 Not Found"
+                else:
+                    header = "200 OK"
+                    content = str(self.route_index[path].func(request))
 
-            else:
-                header = "200 OK"
-                content = str(self.route_index[path].func(request))
+        # Ignore exceptions.
+        except: pass
 
         # Send HTTP response.
 
