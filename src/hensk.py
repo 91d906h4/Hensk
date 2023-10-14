@@ -49,6 +49,11 @@ class Hensk():
 
                 else:
                     header = "200 OK"
+
+                    if self.route_index[path].content_type == "json":
+                        content_type = "application/json"
+
+                    # Pass request to function and get the result.
                     content = str(self.route_index[path].func(request))
 
         # Ignore exceptions.
@@ -78,8 +83,11 @@ class Hensk():
         path            = ""
         method          = ""
         query_string    = ""
+        content         = ""
+        content_length  = 0
 
         for line in request:
+            # Get method and path in HTTP header.
             if line.startswith(("GET", "POST", "POST", "OPTIONS", "PUT", "DELETE", "TRACE", "PATCH", "LINK", "UNLINK")):
                 method, path, _ = line.split()
 
@@ -88,13 +96,45 @@ class Hensk():
 
                 if "&" in query_string:
                     query_string = query_string.split("&")
+                else: query_string = [query_string]
 
-                break
+                if query_string != [""]:
+                    # Tranform query_string from string to dict.
+                    # For example, if the query_string is "username=john&password=123456&admin",
+                    # then the query_string will be transformed into the following format:
+                    #   {
+                    #       "username": "john",
+                    #       "password": "123456",
+                    #       "admin": None
+                    #   }
+                    temp = query_string
+                    query_string = {}
+
+                    for query in temp:
+                        name, value = "", None
+
+                        if "=" in query: name, value = query.split("=", 1)
+                        else: name = query
+
+                        query_string[name] = value
+
+            # Get (POST) content in HTTP header.
+            elif line.startswith("Content-Length"):
+                _, content_length = line.split(":")
+                content_length = int(content_length.strip())
+
+                if content_length != 0:
+                    empty_line = 0
+                    if "\r" in request: empty_line = request.index("\r")
+                    elif "" in request: empty_line = request.index("")
+
+                    if empty_line: content = "\n".join(request[empty_line:])
 
         return {
             "path":         path,
             "query_string": query_string,
-            "method":       method
+            "method":       method,
+            "content":      content
         }
 
     # Set route index.
