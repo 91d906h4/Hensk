@@ -63,6 +63,9 @@ class Hensk():
 
         # Header.
         client_connection.send(f"HTTP/1.1 {header}\n".encode())
+        client_connection.send(f"Access-Control-Allow-Origin: *\n".encode())
+        client_connection.send(f"Access-Control-Allow-Headers: *\n".encode())
+        client_connection.send(f"Access-Control-Allow-Methods: *\n".encode())
 
         # Content-Type.
         client_connection.send(f"Content-Type: {content_type}\n".encode())
